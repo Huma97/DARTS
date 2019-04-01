@@ -1,0 +1,45 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.6.6
+      
+    steps:
+      - checkout
+      
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+        
+     # - run:
+     #     name: run tests
+     #     command: |
+     #       . venv/bin/activate
+     #       jupyter-nbconvert --execute Linear_Regression.ipynb
+     #       mkdir -p test_reports
+     #       mv Linear_Regression.html test_reports
+        
+      - run:
+          name: kaggle
+          command: |
+            . venv/bin/activate
+            echo "{"username":\"${KAGGLE_USERNAME}\","key":\"${KAGGLE_KEY}\}" > kaggle.json
+            mkdir .kaggle
+            mv kaggle.json .kaggle
+            kaggle competitions download titanic
+            jupyter-nbconvert --execute Titanic.ipynb
+            mkdir -p task
+            mv Titanic.html task
+            mv titanic-submission.csv task
+            kaggle competitions submit titanic -f task/titanic-submission.csv -m "My submission message"
+         #   export OSF_PASSWORD
+         #   osf -p x783r upload -f task/Titanic.html osfstorage/Brylov/titanic.html
+         #   osf -p x783r upload -f task/titanic-submission.csv osfstorage/Brylov/titanic.csv
+            
+      #- store_artifacts:
+      #    path: test_reports
+      #    destination: test_reports
+          
